@@ -343,6 +343,7 @@ class HomeAssistantWs:
                         "statistic_id": statistic_id,
                         "unit_of_measurement": "kWh",
                         "unit_class": "energy",
+                        "mean_type": 0,
                     }
 
 
@@ -386,6 +387,7 @@ class HomeAssistantWs:
                         "statistic_id": statistic_id,
                         "unit_of_measurement": "EURO",
                         "unit_class": None,
+                        "mean_type": 0,
                     }
                     chunks = list(chunks_list(list(data["data"].values()), self.batch_size))
                     chunks_len = len(chunks)
@@ -507,6 +509,7 @@ class HomeAssistantWs:
                         "statistic_id": statistic_id,
                         "unit_of_measurement": "kWh",
                         "unit_class": "energy",
+                        "mean_type": 0,
                     }
                     import_statistics = {
                         "id": self.id,
@@ -537,6 +540,7 @@ class HomeAssistantWs:
                         "statistic_id": statistic_id,
                         "unit_of_measurement": "EURO",
                         "unit_class": None,
+                        "mean_type": 0,
                     }
                     import_statistics = {
                         "id": self.id,
