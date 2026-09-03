@@ -342,6 +342,7 @@ class HomeAssistantWs:
                         "source": "myelectricaldata",
                         "statistic_id": statistic_id,
                         "unit_of_measurement": "kWh",
+                        "unit_class": "energy",
                     }
 
 
@@ -384,6 +385,7 @@ class HomeAssistantWs:
                         "source": "myelectricaldata",
                         "statistic_id": statistic_id,
                         "unit_of_measurement": "EURO",
+                        "unit_class": None,
                     }
                     chunks = list(chunks_list(list(data["data"].values()), self.batch_size))
                     chunks_len = len(chunks)
@@ -504,6 +506,7 @@ class HomeAssistantWs:
                         "source": "myelectricaldata",
                         "statistic_id": statistic_id,
                         "unit_of_measurement": "kWh",
+                        "unit_class": "energy",
                     }
                     import_statistics = {
                         "id": self.id,
@@ -533,6 +536,7 @@ class HomeAssistantWs:
                         "source": "myelectricaldata",
                         "statistic_id": statistic_id,
                         "unit_of_measurement": "EURO",
+                        "unit_class": None,
                     }
                     import_statistics = {
                         "id": self.id,
