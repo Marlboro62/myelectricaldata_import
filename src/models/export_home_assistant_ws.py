@@ -37,6 +37,7 @@ class HomeAssistantWs:
         self.purge = False
         self.purge_force = True
         self.batch_size = 1000
+        self.ha_version = None
         self.current_stats = []
         if self.load_config():
             if self.connect():
@@ -100,6 +101,7 @@ class HomeAssistantWs:
             output = json.loads(self.websocket.recv())
             if "type" in output and output["type"] == "auth_required":
                 logging.info("Authentification requise")
+                self.ha_version = output.get("ha_version")
                 return self.authentificate()
             return True
         except Exception as _e:
@@ -142,6 +144,15 @@ class HomeAssistantWs:
                 logging.error(output)
         return output
 
+    def _ha_supports_new_stat_metadata(self):
+        # HA Core a ajouté unit_class/mean_type dans la 2025.11
+        if not self.ha_version:
+            return False
+        try:
+            parts = tuple(int(p) for p in self.ha_version.split(".")[:3])
+        except (ValueError, AttributeError):
+            return False
+        return parts >= (2025, 11, 0)
     def list_data(self):
         """List the data already cached in Home Assistant.
 
@@ -346,6 +357,9 @@ class HomeAssistantWs:
                         "mean_type": 0,
                     }
 
+                    if not self._ha_supports_new_stat_metadata():
+                        del metadata["unit_class"]
+                        del metadata["mean_type"]
 
                     chunks = list(chunks_list(list(data["data"].values()), self.batch_size))
                     chunks_len = len(chunks)
@@ -389,6 +403,11 @@ class HomeAssistantWs:
                         "unit_class": None,
                         "mean_type": 0,
                     }
+
+                    if not self._ha_supports_new_stat_metadata():
+                        del metadata["unit_class"]
+                        del metadata["mean_type"]
+
                     chunks = list(chunks_list(list(data["data"].values()), self.batch_size))
                     chunks_len = len(chunks)
                     for i, chunk in enumerate(chunks):
@@ -511,6 +530,11 @@ class HomeAssistantWs:
                         "unit_class": "energy",
                         "mean_type": 0,
                     }
+
+                    if not self._ha_supports_new_stat_metadata():
+                        del metadata["unit_class"]
+                        del metadata["mean_type"]
+
                     import_statistics = {
                         "id": self.id,
                         "type": "recorder/import_statistics",
@@ -542,6 +566,11 @@ class HomeAssistantWs:
                         "unit_class": None,
                         "mean_type": 0,
                     }
+
+                    if not self._ha_supports_new_stat_metadata():
+                        del metadata["unit_class"]
+                        del metadata["mean_type"]
+
                     import_statistics = {
                         "id": self.id,
                         "type": "recorder/import_statistics",
