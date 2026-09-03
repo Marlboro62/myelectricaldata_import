@@ -2,6 +2,7 @@
 
 import json
 import logging
+import re
 import ssl
 import traceback
 from datetime import datetime, timedelta
@@ -148,11 +149,14 @@ class HomeAssistantWs:
         # HA Core a ajouté unit_class/mean_type dans la 2025.11
         if not self.ha_version:
             return False
-        try:
-            parts = tuple(int(p) for p in self.ha_version.split(".")[:3])
-        except (ValueError, AttributeError):
-            return False
-        return parts >= (2025, 11, 0)
+        segments = self.ha_version.split(".")[:3]
+        parts = []
+        for segment in segments:
+            match = re.match(r"\d+", segment)
+            if not match:
+                return False
+            parts.append(int(match.group()))
+        return tuple(parts) >= (2025, 11, 0)
     def list_data(self):
         """List the data already cached in Home Assistant.
 
