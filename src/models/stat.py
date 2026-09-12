@@ -680,6 +680,20 @@ class Stat:  # pylint: disable=R0902,R0904
             return start_year
         return start_year + 1
 
+    def _period_year_label(self, date_obj):
+        period_start = getattr(self.usage_point_id_config, "annual_period_start", None) or "01-01"
+        try:
+            period_month, period_day = (int(x) for x in str(period_start).split("-"))
+        except (ValueError, AttributeError):
+            period_month, period_day = 1, 1
+        if (date_obj.month, date_obj.day) >= (period_month, period_day):
+            start_year = date_obj.year
+        else:
+            start_year = date_obj.year - 1
+        if period_month == 1 and period_day == 1:
+            return str(start_year)
+        return str(start_year + 1)
+
     def get_year_linear(self, idx, measure_type=None):
         now_date = datetime.now(timezone.utc)
         yesterday_date = datetime.combine(now_date - relativedelta(days=1), datetime.max.time())
@@ -869,7 +883,7 @@ class Stat:  # pylint: disable=R0902,R0904
             tempo_config = self.db.get_tempo_config("price")
             tempo_data = self.db.get_tempo_range(data[0].date, data[-1].date)
             for item in data:
-                year = item.date.strftime("%Y")
+                year = self._period_year_label(item.date)
                 month = item.date.strftime("%m")
                 if month != last_month:
                     logging.info(f" - {year} / {month}")

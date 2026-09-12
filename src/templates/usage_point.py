@@ -827,6 +827,7 @@ class UsagePoint:
 
     def generate_chart_hc_hp(self):
         price_consumption = self.db.get_stat(self.usage_point_id, "price_consumption")
+        is_tempo = getattr(self.usage_point_config, "plan", None) == "Tempo"
         if price_consumption and hasattr(price_consumption[0], "value"):
             recap = ast.literal_eval(price_consumption[0].value)
             for year, data in sorted(recap.items(), reverse=True):
@@ -838,20 +839,40 @@ class UsagePoint:
                 self.javascript += "google.charts.load('current', {'packages':['corechart']});"
                 self.javascript += f"google.charts.setOnLoadCallback(piChart{year});"
                 self.javascript += f"function piChart{year}() " + "{"
-                self.javascript += "   var data = google.visualization.arrayToDataTable([['Type', 'Valeur'],"
-                self.javascript += f"['HC',     {data['HC']['Wh']}],"
-                self.javascript += f"['HP',     {data['HP']['Wh']}],"
-                # self.javascript += f"['BASE',     {data['BASE']['Wh']}],"
-                self.javascript += (
-                    """
-                    ]);
+                if is_tempo and "TEMPO" in data:
+                    tempo = data["TEMPO"]
+                    self.javascript += "   var data = google.visualization.arrayToDataTable([['Type', 'Valeur'],"
+                    self.javascript += f"['Bleu HC',  {tempo['BLUE_HC']['Wh']}],"
+                    self.javascript += f"['Bleu HP',  {tempo['BLUE_HP']['Wh']}],"
+                    self.javascript += f"['Blanc HC', {tempo['WHITE_HC']['Wh']}],"
+                    self.javascript += f"['Blanc HP', {tempo['WHITE_HP']['Wh']}],"
+                    self.javascript += f"['Rouge HC', {tempo['RED_HC']['Wh']}],"
+                    self.javascript += f"['Rouge HP', {tempo['RED_HP']['Wh']}],"
+                    self.javascript += (
+                        """
+                        ]);
 
-                    var options = {
-                        title: '"""
-                    + year
-                    + """',
-                    };"""
-                )
+                        var options = {
+                            title: '"""
+                        + year
+                        + """',
+                            colors: ['#0d47a1', '#5c9bd5', '#b0b0b0', '#e8e8e8', '#c0392b', '#e74c3c'],
+                        };"""
+                    )
+                else:
+                    self.javascript += "   var data = google.visualization.arrayToDataTable([['Type', 'Valeur'],"
+                    self.javascript += f"['HC',     {data['HC']['Wh']}],"
+                    self.javascript += f"['HP',     {data['HP']['Wh']}],"
+                    self.javascript += (
+                        """
+                        ]);
+
+                        var options = {
+                            title: '"""
+                        + year
+                        + """',
+                        };"""
+                    )
                 self.javascript += (
                     f"var chart = new google.visualization.PieChart(document.getElementById('piChart{year}'));"
                 )
