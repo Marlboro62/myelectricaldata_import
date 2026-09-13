@@ -294,7 +294,8 @@ class HomeAssistantWs:
                             tempo_color_price_key = f"{day_color.lower()}_{hour_type.lower()}"
                             tempo_price = float(db_tempo_price[tempo_color_price_key])
                             cost = value / 1000 * tempo_price
-                            name = f"{name} {tempo_color} {measurement_direction}"
+                            tempo_color_display = f"{day_color.capitalize()} {hour_type}"
+                            name = f"{name} {tempo_color_display} {measurement_direction}"
                             statistic_id = f"{statistic_id}_{tempo_color.lower()}_{measurement_direction}"
                             tag = tempo_color.lower()
                     else:
@@ -382,10 +383,19 @@ class HomeAssistantWs:
                             "stats": chunk,
                         })
 
+                    tempo_display_names = {
+                        "bluehc": "Blue HC",
+                        "bluehp": "Blue HP",
+                        "whitehc": "White HC",
+                        "whitehp": "White HP",
+                        "redhc": "Red HC",
+                        "redhp": "Red HP",
+                    }
+                    display_tag = tempo_display_names.get(data["tag"], data["tag"])
                     if self.mqtt and "enable" in self.mqtt and str2bool(self.mqtt["enable"]):
                         HomeAssistant(self.usage_point_id).sensor(
                             topic=f"myelectricaldata_{data["tag"]}_{measurement_direction}/{self.usage_point_id}_energy",
-                            name=f"{data["tag"]} {measurement_direction}",
+                            name=f"{display_tag} {measurement_direction}",
                             device_name=f"Linky {self.usage_point_id}",
                             device_model=f"linky {self.usage_point_id}",
                             device_identifiers=f"{self.usage_point_id}",
@@ -428,10 +438,19 @@ class HomeAssistantWs:
                             "metadata": metadata,
                             "stats": list(chunk),
                         })
+                    tempo_display_names_cost = {
+                        "bluehc": "Blue HC",
+                        "bluehp": "Blue HP",
+                        "whitehc": "White HC",
+                        "whitehp": "White HP",
+                        "redhc": "Red HC",
+                        "redhp": "Red HP",
+                    }
+                    display_tag_cost = tempo_display_names_cost.get(data["tag"], data["tag"])
                     if self.mqtt and "enable" in self.mqtt and str2bool(self.mqtt["enable"]):
                         HomeAssistant(self.usage_point_id).sensor(
                             topic=f"myelectricaldata_{data["tag"]}_{measurement_direction}/{self.usage_point_id}_cost",
-                            name=f"{data["tag"]} {measurement_direction} cost",
+                            name=f"{display_tag_cost} {measurement_direction} cost",
                             device_name=f"Linky {self.usage_point_id}",
                             device_model=f"linky {self.usage_point_id}",
                             device_identifiers=f"{self.usage_point_id}",
