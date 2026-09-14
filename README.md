@@ -30,6 +30,7 @@ Ce fork ajoute les fonctionnalités suivantes en attendant leur intégration év
 
 - Les capteurs MQTT/discovery (Linky, EDF Tempo, RTE Tempo) affichent désormais des noms français lisibles : `Consommation HC Bleu`, `Coût consommation HP Rouge`, `Historique Consommation`, `Aujourd'hui`/`Demain`, `Jours Bleu`, `Prix Rouge HP`, etc.
 - La valeur d'état des capteurs RTE Tempo (`Aujourd'hui`/`Demain`) affiche `Bleu`/`Blanc`/`Rouge` au lieu de `BLUE`/`WHITE`/`RED` (uniquement l'affichage, la logique interne reste inchangée).
+- Les statistiques long terme du tableau de bord Énergie de Home Assistant (`recorder/import_statistics`) sont également traduites : `Bleu HC Consommation`, `Rouge HP Consommation`, `Coût`/`Revenu` au lieu de `Cost`/`Revenue`, etc. Home Assistant régénère automatiquement les métadonnées (quelques minutes) sans perte d'historique.
 
 ### Fichiers modifiés
 
