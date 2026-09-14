@@ -256,23 +256,24 @@ class HomeAssistantWs:
                     last_year = year
                     last_month = month
                     hour_minute = int(f'{data.date.strftime("%H")}{data.date.strftime("%M")}')
+                    direction_fr_ws = "Consommation" if measurement_direction == "consumption" else "Production"
                     name = f"MyElectricalData - {self.usage_point_id}"
                     statistic_id = f"myelectricaldata:{self.usage_point_id}"
                     value = data.value / (60 / data.interval)
                     if plan == "BASE":
-                        name = f"{name} {plan} {measurement_direction}"
+                        name = f"{name} Base {direction_fr_ws}"
                         statistic_id = f"{statistic_id}_{plan.lower()}_{measurement_direction}"
                         cost = value * self.usage_point_id_config.consumption_price_base / 1000
                         tag = "base"
                     elif plan == "HC/HP":
                         measure_type = stats.get_mesure_type(data.date)
                         if measure_type == "HC":
-                            name = f"{name} HC {measurement_direction}"
+                            name = f"{name} HC {direction_fr_ws}"
                             statistic_id = f"{statistic_id}_hc_{measurement_direction}"
                             cost = value * self.usage_point_id_config.consumption_price_hc / 1000
                             tag = "hc"
                         else:
-                            name = f"{name} HP {measurement_direction}"
+                            name = f"{name} HP {direction_fr_ws}"
                             statistic_id = f"{statistic_id}_hp_{measurement_direction}"
                             cost = value * self.usage_point_id_config.consumption_price_hp / 1000
                             tag = "hp"
@@ -294,8 +295,9 @@ class HomeAssistantWs:
                             tempo_color_price_key = f"{day_color.lower()}_{hour_type.lower()}"
                             tempo_price = float(db_tempo_price[tempo_color_price_key])
                             cost = value / 1000 * tempo_price
-                            tempo_color_display = f"{day_color.capitalize()} {hour_type}"
-                            name = f"{name} {tempo_color_display} {measurement_direction}"
+                            color_fr_ws = {"BLUE": "Bleu", "WHITE": "Blanc", "RED": "Rouge"}.get(day_color.upper(), day_color.capitalize())
+                            tempo_color_display = f"{color_fr_ws} {hour_type}"
+                            name = f"{name} {tempo_color_display} {direction_fr_ws}"
                             statistic_id = f"{statistic_id}_{tempo_color.lower()}_{measurement_direction}"
                             tag = tempo_color.lower()
                     else:
@@ -325,7 +327,7 @@ class HomeAssistantWs:
                     statistic_id = f"{statistic_id}_cost"
                     if statistic_id not in stats_euro:
                         stats_euro[statistic_id] = {
-                            "name": f"{name} Cost",
+                            "name": f"{name} Coût",
                             "sum": 0,
                             "data": {},
                         }
@@ -502,7 +504,8 @@ class HomeAssistantWs:
                     last_year = year
                     last_month = month
                     hour_minute = int(f'{data.date.strftime("%H")}{data.date.strftime("%M")}')
-                    name = f"MyElectricalData - {self.usage_point_id} {measurement_direction}"
+                    direction_fr_ws_prod = "Consommation" if measurement_direction == "consumption" else "Production"
+                    name = f"MyElectricalData - {self.usage_point_id} {direction_fr_ws_prod}"
                     statistic_id = f"myelectricaldata:{self.usage_point_id}_{measurement_direction}"
                     value = data.value / (60 / data.interval)
                     cost = value * self.usage_point_id_config.production_price / 1000
@@ -529,7 +532,7 @@ class HomeAssistantWs:
                     statistic_id = f"{statistic_id}_revenue"
                     if statistic_id not in stats_euro:
                         stats_euro[statistic_id] = {
-                            "name": f"{name} Revenue",
+                            "name": f"{name} Revenu",
                             "sum": 0,
                             "data": {},
                         }
