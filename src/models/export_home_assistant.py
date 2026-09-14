@@ -224,9 +224,10 @@ class HomeAssistant:  # pylint: disable=R0902
         for data in range:
             attributes["time"].append(data.date.strftime("%Y-%m-%d %H:%M:%S"))
             attributes[measurement_direction].append(data.value)
+        direction_fr_last = "Consommation" if measurement_direction == "consumption" else "Production"
         self.sensor(
             topic=f"myelectricaldata_{measurement_direction}_last_{days}_day/{self.usage_point_id}",
-            name=f"{measurement_direction}.last{days}day",
+            name=f"{direction_fr_last} {days} derniers jours",
             device_name=f"Linky {self.usage_point_id}",
             device_model=f"linky {self.usage_point_id}",
             device_identifiers=f"{self.usage_point_id}",
@@ -253,9 +254,10 @@ class HomeAssistant:  # pylint: disable=R0902
             state = 0
         state = convert_kw(state)
         attributes = {"yesterdayDate": stats.daily(0)["begin"]}
+        direction_fr_hist = "Consommation" if measurement_direction == "consumption" else "Production"
         self.sensor(
             topic=f"myelectricaldata_{measurement_direction}_history/{self.usage_point_id}",
-            name=f"{measurement_direction}.history",
+            name=f"Historique {direction_fr_hist}",
             device_name=f"Linky {self.usage_point_id}",
             device_model=f"linky {self.usage_point_id}",
             device_identifiers=f"{self.usage_point_id}",
@@ -626,9 +628,10 @@ class HomeAssistant:  # pylint: disable=R0902
         }
 
         uniq_id = f"myelectricaldata_linky_{self.usage_point_id}_{measurement_direction}"
+        direction_fr = "Consommation" if measurement_direction == "consumption" else "Production"
         self.sensor(
             topic=f"myelectricaldata_{measurement_direction}/{self.usage_point_id}",
-            name=f"{measurement_direction}",
+            name=f"{direction_fr}",
             device_name=f"Linky {self.usage_point_id}",
             device_model=f"linky {self.usage_point_id}",
             device_identifiers=f"{self.usage_point_id}",
@@ -659,15 +662,16 @@ class HomeAssistant:  # pylint: disable=R0902
             state = "Inconnu"
         attributes = {"date": date}
         self.tempo_color = state
+        state_display = {"BLUE": "Bleu", "WHITE": "Blanc", "RED": "Rouge", "Inconnu": "Inconnu"}.get(state, state)
         self.sensor(
             topic="myelectricaldata_rte/tempo_today",
-            name="Today",
+            name="Aujourd'hui",
             device_name="RTE Tempo",
             device_model="RTE",
             device_identifiers="rte_tempo",
             uniq_id=uniq_id,
             attributes=attributes,
-            state=state,
+            state=state_display,
         )
 
         uniq_id = "myelectricaldata_tempo_tomorrow"
@@ -681,15 +685,16 @@ class HomeAssistant:  # pylint: disable=R0902
             date = begin.strftime(self.date_format_detail)
             state = "Inconnu"
         attributes = {"date": date}
+        state_display = {"BLUE": "Bleu", "WHITE": "Blanc", "RED": "Rouge", "Inconnu": "Inconnu"}.get(state, state)
         self.sensor(
             topic="myelectricaldata_rte/tempo_tomorrow",
-            name="Tomorrow",
+            name="Demain",
             device_name="RTE Tempo",
             device_model="RTE",
             device_identifiers="rte_tempo",
             uniq_id=uniq_id,
             attributes=attributes,
-            state=state,
+            state=state_display,
         )
 
     def tempo_days(self):
@@ -716,10 +721,11 @@ class HomeAssistant:  # pylint: disable=R0902
             None
 
         """
+        color_fr = {"blue": "Bleu", "white": "Blanc", "red": "Rouge"}.get(color.lower(), color.capitalize())
         uniq_id = f"myelectricaldata_tempo_days_{color}"
         self.sensor(
             topic=f"myelectricaldata_edf/tempo_days_{color}",
-            name=f"Days {color.capitalize()}",
+            name=f"Jours {color_fr}",
             device_name="EDF Tempo",
             device_model="EDF",
             device_identifiers="edf_tempo",
@@ -800,10 +806,12 @@ class HomeAssistant:  # pylint: disable=R0902
             None
         """
         uniq_id = f"myelectricaldata_tempo_price_{color}"
-        name = f"{name[0:-2]} {name[-2:]}"
+        color_part, hc_hp_part = color.split("_")
+        color_fr = {"blue": "Bleu", "white": "Blanc", "red": "Rouge"}.get(color_part.lower(), color_part.capitalize())
+        name = f"{color_fr} {hc_hp_part.upper()}"
         self.sensor(
             topic=f"myelectricaldata_edf/tempo_price_{color}",
-            name=f"Price {name}",
+            name=f"Prix {name}",
             device_name="EDF Tempo",
             device_model="EDF",
             device_identifiers="edf_tempo",

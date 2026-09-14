@@ -383,19 +383,23 @@ class HomeAssistantWs:
                             "stats": chunk,
                         })
 
-                    tempo_display_names = {
-                        "bluehc": "Blue HC",
-                        "bluehp": "Blue HP",
-                        "whitehc": "White HC",
-                        "whitehp": "White HP",
-                        "redhc": "Red HC",
-                        "redhp": "Red HP",
+                    tag_display_names_fr = {
+                        "base": "Base",
+                        "hc": "HC",
+                        "hp": "HP",
+                        "bluehc": "HC Bleu",
+                        "bluehp": "HP Bleu",
+                        "whitehc": "HC Blanc",
+                        "whitehp": "HP Blanc",
+                        "redhc": "HC Rouge",
+                        "redhp": "HP Rouge",
                     }
-                    display_tag = tempo_display_names.get(data["tag"], data["tag"])
+                    direction_fr = "Consommation" if measurement_direction == "consumption" else "Production"
+                    display_tag = tag_display_names_fr.get(data["tag"], data["tag"])
                     if self.mqtt and "enable" in self.mqtt and str2bool(self.mqtt["enable"]):
                         HomeAssistant(self.usage_point_id).sensor(
                             topic=f"myelectricaldata_{data["tag"]}_{measurement_direction}/{self.usage_point_id}_energy",
-                            name=f"{display_tag} {measurement_direction}",
+                            name=f"{direction_fr} {display_tag}",
                             device_name=f"Linky {self.usage_point_id}",
                             device_model=f"linky {self.usage_point_id}",
                             device_identifiers=f"{self.usage_point_id}",
@@ -438,19 +442,23 @@ class HomeAssistantWs:
                             "metadata": metadata,
                             "stats": list(chunk),
                         })
-                    tempo_display_names_cost = {
-                        "bluehc": "Blue HC",
-                        "bluehp": "Blue HP",
-                        "whitehc": "White HC",
-                        "whitehp": "White HP",
-                        "redhc": "Red HC",
-                        "redhp": "Red HP",
+                    tag_display_names_cost_fr = {
+                        "base": "Base",
+                        "hc": "HC",
+                        "hp": "HP",
+                        "bluehc": "HC Bleu",
+                        "bluehp": "HP Bleu",
+                        "whitehc": "HC Blanc",
+                        "whitehp": "HP Blanc",
+                        "redhc": "HC Rouge",
+                        "redhp": "HP Rouge",
                     }
-                    display_tag_cost = tempo_display_names_cost.get(data["tag"], data["tag"])
+                    direction_fr_cost = "consommation" if measurement_direction == "consumption" else "production"
+                    display_tag_cost = tag_display_names_cost_fr.get(data["tag"], data["tag"])
                     if self.mqtt and "enable" in self.mqtt and str2bool(self.mqtt["enable"]):
                         HomeAssistant(self.usage_point_id).sensor(
                             topic=f"myelectricaldata_{data["tag"]}_{measurement_direction}/{self.usage_point_id}_cost",
-                            name=f"{display_tag_cost} {measurement_direction} cost",
+                            name=f"Coût {direction_fr_cost} {display_tag_cost}",
                             device_name=f"Linky {self.usage_point_id}",
                             device_model=f"linky {self.usage_point_id}",
                             device_identifiers=f"{self.usage_point_id}",
