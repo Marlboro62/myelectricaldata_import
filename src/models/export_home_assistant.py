@@ -157,6 +157,7 @@ class HomeAssistant:  # pylint: disable=R0902
         self.tempo_info()
         self.tempo_days()
         self.tempo_price()
+        self.tempo_percentage()
         self.ecowatt()
 
     def sensor(self, **kwargs):
@@ -696,6 +697,45 @@ class HomeAssistant:  # pylint: disable=R0902
             attributes=attributes,
             state=state_display,
         )
+
+    def tempo_percentage(self):
+        """Add tempo percentage sensors (Blue/White/Red HC/HP) for the current annual period.
+
+        Returns:
+            None
+        """
+        price_consumption = DB.get_stat(self.usage_point_id, "price_consumption")
+        if not (price_consumption and hasattr(price_consumption[0], "value")):
+            return
+        recap = json.loads(price_consumption[0].value)
+        stat = Stat(self.usage_point_id, "consumption")
+        current_year_label = stat._period_year_label(datetime.now())
+        if current_year_label not in recap or "TEMPO" not in recap[current_year_label]:
+            return
+        tempo_data = recap[current_year_label]["TEMPO"]
+        total_wh = sum(v["Wh"] for v in tempo_data.values())
+        color_fr_map = {
+            "BLUE_HC": "Bleu HC",
+            "BLUE_HP": "Bleu HP",
+            "WHITE_HC": "Blanc HC",
+            "WHITE_HP": "Blanc HP",
+            "RED_HC": "Rouge HC",
+            "RED_HP": "Rouge HP",
+        }
+        for key, values in tempo_data.items():
+            percent = round((values["Wh"] / total_wh) * 100, 2) if total_wh else 0
+            name_fr = color_fr_map.get(key, key)
+            uniq_id = f"myelectricaldata_tempo_percentage_{key.lower()}"
+            self.sensor(
+                topic=f"myelectricaldata_edf/tempo_percentage_{key.lower()}",
+                name=f"Pourcentage {name_fr}",
+                device_name="EDF Tempo",
+                device_model="EDF",
+                device_identifiers="edf_tempo",
+                uniq_id=uniq_id,
+                state=percent,
+                unit_of_measurement="%",
+            )
 
     def tempo_days(self):
         """Add tempo days sensors to Home Assistant.
