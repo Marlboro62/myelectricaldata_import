@@ -620,7 +620,7 @@ class HomeAssistant:  # pylint: disable=R0902
             "current_month_evolution": round(current_month_evolution, 2),
             "yesterday_evolution": round(yesterday_evolution, 2),
             "yearly_evolution": round(yearly_evolution, 2),
-            "annual_period_start": getattr(self.usage_point_config, "annual_period_start", None) or "01-01",
+            "annual_period_start": getattr(self.config_usage_point, "annual_period_start", None) or "01-01",
             "tempo_percentage_blue_hc": tempo_percentages.get("BLUE_HC", 0),
             "tempo_percentage_blue_hp": tempo_percentages.get("BLUE_HP", 0),
             "tempo_percentage_white_hc": tempo_percentages.get("WHITE_HC", 0),
