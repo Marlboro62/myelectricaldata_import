@@ -509,6 +509,8 @@ class HomeAssistant:  # pylint: disable=R0902
         if error_last_call is None:
             error_last_call = ""
 
+        tempo_percentages = self._compute_tempo_percentages() or {}
+
         attributes = {
             "yesterdayDate": stats.daily(0)["begin"],
             "yesterday": convert_kw(stats.daily(0)["value"]),
@@ -618,6 +620,13 @@ class HomeAssistant:  # pylint: disable=R0902
             "current_month_evolution": round(current_month_evolution, 2),
             "yesterday_evolution": round(yesterday_evolution, 2),
             "yearly_evolution": round(yearly_evolution, 2),
+            "annual_period_start": getattr(self.usage_point_config, "annual_period_start", None) or "01-01",
+            "tempo_percentage_blue_hc": tempo_percentages.get("BLUE_HC", 0),
+            "tempo_percentage_blue_hp": tempo_percentages.get("BLUE_HP", 0),
+            "tempo_percentage_white_hc": tempo_percentages.get("WHITE_HC", 0),
+            "tempo_percentage_white_hp": tempo_percentages.get("WHITE_HP", 0),
+            "tempo_percentage_red_hc": tempo_percentages.get("RED_HC", 0),
+            "tempo_percentage_red_hp": tempo_percentages.get("RED_HP", 0),
             "friendly_name": f"myelectricaldata.{self.usage_point_id}",
             "errorLastCall": error_last_call,
             "errorLastCallInterne": "",
@@ -698,33 +707,47 @@ class HomeAssistant:  # pylint: disable=R0902
             state=state_display,
         )
 
+    TEMPO_COLOR_FR_MAP = {
+        "BLUE_HC": "Bleu HC",
+        "BLUE_HP": "Bleu HP",
+        "WHITE_HC": "Blanc HC",
+        "WHITE_HP": "Blanc HP",
+        "RED_HC": "Rouge HC",
+        "RED_HP": "Rouge HP",
+    }
+
+    def _compute_tempo_percentages(self):
+        """Compute Tempo percentages (Blue/White/Red HC/HP) for the current annual period.
+
+        Returns:
+            dict | None: mapping key -> percent (float), or None if no data available.
+        """
+        price_consumption = DB.get_stat(self.usage_point_id, "price_consumption")
+        if not (price_consumption and hasattr(price_consumption[0], "value")):
+            return None
+        recap = json.loads(price_consumption[0].value)
+        stat = Stat(self.usage_point_id, "consumption")
+        current_year_label = stat._period_year_label(datetime.now())
+        if current_year_label not in recap or "TEMPO" not in recap[current_year_label]:
+            return None
+        tempo_data = recap[current_year_label]["TEMPO"]
+        total_wh = sum(v["Wh"] for v in tempo_data.values())
+        return {
+            key: round((values["Wh"] / total_wh) * 100, 2) if total_wh else 0
+            for key, values in tempo_data.items()
+        }
+
     def tempo_percentage(self):
         """Add tempo percentage sensors (Blue/White/Red HC/HP) for the current annual period.
 
         Returns:
             None
         """
-        price_consumption = DB.get_stat(self.usage_point_id, "price_consumption")
-        if not (price_consumption and hasattr(price_consumption[0], "value")):
+        percentages = self._compute_tempo_percentages()
+        if percentages is None:
             return
-        recap = json.loads(price_consumption[0].value)
-        stat = Stat(self.usage_point_id, "consumption")
-        current_year_label = stat._period_year_label(datetime.now())
-        if current_year_label not in recap or "TEMPO" not in recap[current_year_label]:
-            return
-        tempo_data = recap[current_year_label]["TEMPO"]
-        total_wh = sum(v["Wh"] for v in tempo_data.values())
-        color_fr_map = {
-            "BLUE_HC": "Bleu HC",
-            "BLUE_HP": "Bleu HP",
-            "WHITE_HC": "Blanc HC",
-            "WHITE_HP": "Blanc HP",
-            "RED_HC": "Rouge HC",
-            "RED_HP": "Rouge HP",
-        }
-        for key, values in tempo_data.items():
-            percent = round((values["Wh"] / total_wh) * 100, 2) if total_wh else 0
-            name_fr = color_fr_map.get(key, key)
+        for key, percent in percentages.items():
+            name_fr = self.TEMPO_COLOR_FR_MAP.get(key, key)
             uniq_id = f"myelectricaldata_tempo_percentage_{key.lower()}"
             self.sensor(
                 topic=f"myelectricaldata_edf/tempo_percentage_{key.lower()}",
